@@ -36,6 +36,9 @@
             background-color: #ffeef0; /* Light red background */
             color: #a50e48; /* Dark red text */
         }
+        .hunk {
+            color: #0366d6; /* Blue color for @@ lines */
+        }
         .error {
             color: red;
         }
@@ -90,7 +93,7 @@
         });
 
         /**
-         * Formats the diff by wrapping added and removed lines with styled spans.
+         * Formats the diff by wrapping added, removed, and hunk lines with styled spans.
          * @param {string} diff - The diff text.
          * @returns {string} - The formatted HTML string.
          */
@@ -101,6 +104,8 @@
                     return `<span class="added">${escapeHTML(line)}</span>`;
                 } else if (line.startsWith('-') && !line.startsWith('---')) {
                     return `<span class="removed">${escapeHTML(line)}</span>`;
+                } else if (line.startsWith('@@')) {
+                    return `<span class="hunk">${escapeHTML(line)}</span>`;
                 } else {
                     return escapeHTML(line);
                 }
