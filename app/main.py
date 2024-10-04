@@ -48,7 +48,7 @@ async def generate_code(request: CodegenRequest):
         initial_changes = generate_changes(repo_content, request.prompt)
         
         # Perform reflection
-        final_changes = perform_reflection(initial_changes)
+        final_changes = perform_reflection(initial_changes, request.prompt)
         
         # Generate diff
         diff = generate_diff(repo_content, final_changes)
