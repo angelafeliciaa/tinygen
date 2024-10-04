@@ -6,11 +6,20 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 import uvicorn
 import os
+from supabase import create_client, Client
+from dotenv import load_dotenv
 from .github_utils import fetch_repo_content
 from .llm_utils import generate_changes, perform_reflection
 from .diff_utils import generate_diff
 
+load_dotenv()
+
 app = FastAPI()
+
+# Supabase setup
+supabase_url = os.environ.get("SUPABASE_URL")
+supabase_key = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(supabase_url, supabase_key)
 
 # Serve static files
 static_dir = os.path.join(os.getcwd(), "static")
@@ -43,6 +52,13 @@ async def generate_code(request: CodegenRequest):
         
         # Generate diff
         diff = generate_diff(repo_content, final_changes)
+
+        # # Store in Supabase
+        supabase.table("tinygen_logs").insert({
+            "repo_url": request.repoUrl,
+            "prompt": request.prompt,
+            "diff": diff
+        }).execute()
         
         return JSONResponse(content={"diff": diff})
     except Exception as e:
