@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinyGen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input, textarea, button {
+            font-size: 16px;
+            padding: 5px;
+        }
+        #result {
+            white-space: pre-wrap;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>TinyGen</h1>
+    <form id="tinygenForm">
+        <input type="text" id="repoUrl" placeholder="GitHub Repo URL" required>
+        <textarea id="prompt" placeholder="Enter your prompt" required></textarea>
+        <button type="submit">Generate Diff</button>
+    </form>
+    <h2>Result:</h2>
+    <pre id="result"></pre>
+
+    <script>
+        document.getElementById('tinygenForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const repoUrl = document.getElementById('repoUrl').value;
+            const prompt = document.getElementById('prompt').value;
+            const resultElement = document.getElementById('result');
+
+            resultElement.textContent = 'Generating diff...';
+            resultElement.className = '';
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ repoUrl, prompt }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Unknown error occurred');
+                }
+
+                if (data.diff) {
+                    resultElement.textContent = data.diff;
+                } else if (data.error) {
+                    throw new Error(data.error);
+                } else {
+                    throw new Error('Unexpected response format');
+                }
+            } catch (error) {
+                resultElement.textContent = `Error: ${error.message}`;
+                resultElement.className = 'error';
+            }
+        });
+    </script>
+</body>
+</html>
