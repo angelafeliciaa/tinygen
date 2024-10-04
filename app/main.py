@@ -1,5 +1,3 @@
-# storing fastAPI app
-
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
@@ -9,8 +7,8 @@ import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from .github_utils import fetch_repo_content
-from .llm_utils import generate_changes, perform_reflection
-from .diff_utils import generate_diff
+from .llm_utils import generate_changes, perform_reflection, find_relevant_files, rank_and_select_files, extract_relevant_functions
+from .diff_utils import generate_diff, format_diff_indentation
 
 load_dotenv()
 
@@ -36,7 +34,6 @@ async def read_index():
         return FileResponse(index_path)
     else:
         return JSONResponse(status_code=404, content={"error": "index.html not found"})
-    
 
 @app.post("/generate")
 async def generate_code(request: CodegenRequest):
@@ -44,8 +41,17 @@ async def generate_code(request: CodegenRequest):
         # Fetch repo content
         repo_content = fetch_repo_content(request.repoUrl)
         
-        # Generate initial changes
-        initial_changes = generate_changes(repo_content, request.prompt)
+        # Find relevant files
+        relevant_files = find_relevant_files(repo_content, request.prompt)
+        
+        # Rank and select top files
+        top_files = rank_and_select_files(relevant_files)
+        
+        # Extract relevant functions from top files
+        relevant_files_and_functions = extract_relevant_functions(top_files, request.prompt)
+        
+        # Generate initial changes only for relevant functions
+        initial_changes = generate_changes(relevant_files_and_functions, request.prompt)
         
         # Perform reflection
         final_changes = perform_reflection(initial_changes, request.prompt)
@@ -53,11 +59,11 @@ async def generate_code(request: CodegenRequest):
         # Generate diff
         diff = generate_diff(repo_content, final_changes)
         
-        # **Sanitize diff by removing null bytes**
-        sanitized_diff = diff.replace('\u0000', '')
+        # Format diff indentation
+        formatted_diff = format_diff_indentation(diff)
         
-        # Alternatively, encode diff as JSON to handle special characters
-        # sanitized_diff = json.dumps(diff)
+        # Sanitize diff by removing null bytes
+        sanitized_diff = formatted_diff.replace('\u0000', '')
         
         # Store in Supabase
         supabase.table("tinygen_logs").insert({
@@ -66,23 +72,20 @@ async def generate_code(request: CodegenRequest):
             "diff": sanitized_diff
         }).execute()
         
-        return JSONResponse(content={"diff": diff})
+        return JSONResponse(content={"diff": formatted_diff})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
-    
-# fetch content works  
+
 @app.get("/fetch-content")
 async def fetch_content(repo_url: str):
     try:
         # Fetch repo content
         repo_content = fetch_repo_content(repo_url)
         print(repo_content)  # Print the content to the console
-
         # Return the fetched content as JSON
         return JSONResponse(content={"repo_content": repo_content})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
-
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
