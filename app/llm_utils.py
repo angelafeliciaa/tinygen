@@ -2,9 +2,10 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
+load_dotenv()
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-load_dotenv()
 
 def generate_changes(repo_content: dict, prompt: str) -> dict:
     changes = {}

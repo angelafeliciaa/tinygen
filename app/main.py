@@ -52,12 +52,18 @@ async def generate_code(request: CodegenRequest):
         
         # Generate diff
         diff = generate_diff(repo_content, final_changes)
-
-        # # Store in Supabase
+        
+        # **Sanitize diff by removing null bytes**
+        sanitized_diff = diff.replace('\u0000', '')
+        
+        # Alternatively, encode diff as JSON to handle special characters
+        # sanitized_diff = json.dumps(diff)
+        
+        # Store in Supabase
         supabase.table("tinygen_logs").insert({
             "repo_url": request.repoUrl,
             "prompt": request.prompt,
-            "diff": diff
+            "diff": sanitized_diff
         }).execute()
         
         return JSONResponse(content={"diff": diff})
