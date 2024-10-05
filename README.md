@@ -4,7 +4,7 @@ TinyGen is a tool for generating diffs based on natural language descriptions.
 
 ## Live Demo
 
-A live demo of TinyGen is available at [https://tinygen-31646a1cc468.herokuapp.com](https://tinygen-31646a1cc468.herokuapp.com).
+A live demo of TinyGen is available at [https://tinygen-31646a1cc468.herokuapp.com](https://tinygen-31646a1cc468.herokuapp.com). Navigate to https://tinygen-31646a1cc468.herokuapp.com/docs to see the API documentation.
 
 ## Local Setup
 
