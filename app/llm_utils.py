@@ -42,14 +42,15 @@ def find_relevant_files(repo_content: dict, prompt: str) -> dict:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are an assistant that determines how relevant a file is to a given prompt. Respond with a relevance score from 1 to 100, where 100 is extremely relevant and 1 is not relevant at all."},
+                {"role": "system", "content": "You are an assistant that determines how relevant a file is to a given prompt. Respond with a numeric relevance score from 1 to 100, where 100 is extremely relevant and 1 is not relevant at all. Only provide the numeric score as your response."},
                 {"role": "user", "content": f"Given the following code:\n\n{content}\n\nHow relevant is this file to the following change request: {prompt}\n\nRelevance score (1-100):"}
             ],
-            max_tokens=10,
-            temperature=0.2
+            max_tokens=5000,
+            temperature=0
         )
         try:
-            score = int(response.choices[0].message.content.strip())
+            score_str = response.choices[0].message.content.strip()
+            score = int(score_str)
             relevant_files[file_path] = {"content": content, "score": score}
         except ValueError:
             logger.warning(f"Error parsing score for {file_path}. Setting default score of 1.")
@@ -90,8 +91,8 @@ def extract_relevant_functions(top_files: dict, prompt: str) -> dict:
                 {"role": "system", "content": "You are an assistant that extracts relevant functions from a given code file. Respond with the names of the most relevant functions, separated by commas."},
                 {"role": "user", "content": f"Given the following code:\n\n{file_info['content']}\n\nWhat are the most relevant functions for this change request: {prompt}\n\nRelevant functions:"}
             ],
-            max_tokens=100,
-            temperature=0.2
+            max_tokens=5000,
+            temperature=0
         )
         relevant_functions[file_path] = {
             "score": file_info["score"],
@@ -100,29 +101,35 @@ def extract_relevant_functions(top_files: dict, prompt: str) -> dict:
 
     return relevant_functions
 
-def generate_changes(repo_content: dict, prompt: str) -> dict:
+def generate_changes(top_files: dict, prompt: str) -> dict:
     changes = {}
-    for file_path, content in repo_content.items():
-        response = client.chat.completions.create(model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant that modifies code based on user prompts. Don't give long explanations or comments. Just fix the code relevant to what is requested. DO NOT WRITE COMMENTS, KEY CHANGES OR SUMMARY. DO NOT EDIT THE README.md file."},
-            {"role": "user", "content": f"Given the following code:\n\n{content}\n\nApply the following change: {prompt}\n\nModified code:"}
-        ],
-        max_tokens=1000,
-        temperature=0.2)
-        changes[file_path] = response.choices[0].message.content.strip()
+    for file_path, file_info in top_files.items():
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that modifies code based on user prompts. If you think there needs to be a change to fulfill the prompt, respond with the code change. Otherwise, respond with nothing."},
+                {"role": "user", "content": f"Given the following code:\n\n{file_info['content']}\n\nApply the following change if necessary: {prompt}\n\nModified code:"}
+            ],
+            max_tokens=5000,
+            temperature=0
+        )
+        change_content = response.choices[0].message.content.strip()
+        if change_content:
+            changes[file_path] = change_content
     return changes
 
 def perform_reflection(changes: dict, prompt: str) -> dict:
     reflected_changes = {}
     for file_path, modified_content in changes.items():
-        response = client.chat.completions.create(model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a code reviewer assistant."},
-            {"role": "user", "content": f"We are trying to solve this problem: \n\n{prompt}\n\nReview the following code changes:\n\n{modified_content}\n\n. Are the code changes relevant to what is asked? DO NOT WRITE COMMENTS, KEY CHANGES OR SUMMARY. DO NOT EDIT THE README.md file. Are there any improvements or corrections needed? If yes, provide the corrected code. If no, respond with 'No changes needed.'"}
-        ],
-        max_tokens=1000,
-        temperature=0.2)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a code reviewer assistant."},
+                {"role": "user", "content": f"We are trying to solve this problem: \n\n{prompt}\n\nReview the following code changes in the file: {file_path}\n\n{modified_content}\n\nAre the code changes relevant to what is asked and are they made in the correct file? DO NOT WRITE COMMENTS, KEY CHANGES OR SUMMARY. DO NOT EDIT THE README.md file. Are there any improvements or corrections needed? If yes, provide the corrected code. If no, respond with 'No changes needed.'"}
+            ],
+            max_tokens=5000,
+            temperature=0
+        )
         reflection = response.choices[0].message.content.strip()
         if reflection.lower() != "no changes needed.":
             reflected_changes[file_path] = reflection

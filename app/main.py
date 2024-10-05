@@ -47,23 +47,14 @@ async def generate_code(request: CodegenRequest):
         # Rank and select top files
         top_files = rank_and_select_files(relevant_files)
         
-        # Extract relevant functions from top files
-        relevant_files_and_functions = extract_relevant_functions(top_files, request.prompt)
-        
-        # Generate initial changes only for relevant functions
-        initial_changes = generate_changes(relevant_files_and_functions, request.prompt)
-        
-        # Perform reflection
-        final_changes = perform_reflection(initial_changes, request.prompt)
+        # Iteratively generate and refine changes
+        final_changes = iterative_change_generation(top_files, request.prompt)
         
         # Generate diff
         diff = generate_diff(repo_content, final_changes)
         
-        # Format diff indentation
-        formatted_diff = format_diff_indentation(diff)
-        
         # Sanitize diff by removing null bytes
-        sanitized_diff = formatted_diff.replace('\u0000', '')
+        sanitized_diff = diff.replace('\u0000', '')
         
         # Store in Supabase
         supabase.table("tinygen_logs").insert({
@@ -72,7 +63,7 @@ async def generate_code(request: CodegenRequest):
             "diff": sanitized_diff
         }).execute()
         
-        return JSONResponse(content={"diff": formatted_diff})
+        return JSONResponse(content={"diff": sanitized_diff})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -86,6 +77,21 @@ async def fetch_content(repo_url: str):
         return JSONResponse(content={"repo_content": repo_content})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+def iterative_change_generation(top_files: dict, prompt: str) -> dict:
+    changes = generate_changes(top_files, prompt)
+    while True:
+        # Perform reflection
+        final_changes = perform_reflection(changes, prompt)
+        
+        # Check if any changes were suggested
+        if all(final_changes[file_path] == changes[file_path] for file_path in changes):
+            break  # No further changes needed
+        
+        # Update changes with the reflected corrections
+        changes = final_changes
+    
+    return changes
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
