@@ -10,7 +10,7 @@ A live demo of TinyGen is available at [https://tinygen-31646a1cc468.herokuapp.c
 
 1. Clone the repository:
    ```
-   git clone https://github.com/your-username/tinygen.git
+   git clone https://github.com/angelafeliciaa/TinyGen.git
    cd tinygen
    ```
 
