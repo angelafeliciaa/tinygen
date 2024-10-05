@@ -22,6 +22,7 @@ def generate_diff(original_content: dict, modified_content: dict) -> str:
             diff.extend(file_diff)
     
     return '\n'.join(diff)
+
 def format_diff_indentation(diff: str) -> str:
     lines = diff.split('\n')
     formatted_lines = []
