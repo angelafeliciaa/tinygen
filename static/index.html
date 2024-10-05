@@ -31,6 +31,15 @@
         .error {
             color: red;
         }
+        .added {
+            color: green;
+        }
+        .removed {
+            color: red;
+        }
+        .info {
+            color: blue;
+        }
     </style>
 </head>
 <body>
@@ -44,6 +53,20 @@
     <pre id="result"></pre>
 
     <script>
+        function colorCodeDiff(diff) {
+            return diff.split('\n').map(line => {
+                if (line.startsWith('+')) {
+                    return `<span class="added">${line}</span>`;
+                } else if (line.startsWith('-')) {
+                    return `<span class="removed">${line}</span>`;
+                } else if (line.startsWith('@@ ')) {
+                    return `<span class="info">${line}</span>`;
+                } else {
+                    return line;
+                }
+            }).join('\n');
+        }
+
         document.getElementById('tinygenForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const repoUrl = document.getElementById('repoUrl').value;
@@ -69,7 +92,7 @@
                 }
 
                 if (data.diff) {
-                    resultElement.textContent = data.diff;
+                    resultElement.innerHTML = colorCodeDiff(data.diff);
                 } else if (data.error) {
                     throw new Error(data.error);
                 } else {
