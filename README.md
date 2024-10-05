@@ -14,12 +14,24 @@ A live demo of TinyGen is available at [https://tinygen-31646a1cc468.herokuapp.c
    cd tinygen
    ```
 
-2. Install dependencies:
+2. Create and activate a virtual environment:
+   On Windows:
+   ```
+   python -m venv venv
+   venv\Scripts\activate
+   ```
+   On macOS and Linux:
+   ```
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. Install dependencies:
    ```
    pip install -r requirements.txt
    ```
 
-3. Set up environment variables:
+4. Set up environment variables:
    Create a `.env` file in the root directory and add:
    ```
    OPENAI_API_KEY=your_openai_api_key
@@ -27,12 +39,12 @@ A live demo of TinyGen is available at [https://tinygen-31646a1cc468.herokuapp.c
    SUPABASE_KEY=your_supabase_key
    ```
 
-4. Run the application:
+5. Run the application:
    ```
    uvicorn app.main:app --reload
    ```
 
-5. Open `http://localhost:8000` in your browser to use the application.
+6. Open `http://localhost:8000` in your browser to use the application.
 
 ## Usage
 
