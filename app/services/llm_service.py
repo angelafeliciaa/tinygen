@@ -140,11 +140,12 @@ def generate_changes(top_files: dict, prompt: str) -> dict:
             "4. Provide only the modified code, not explanations or comments about the changes.\n"
             "5. Do not use markdown formatting or code block syntax (like '''python or ''').\n"
             "6. Do not include any text before or after the code.\n"
+            "7. The user prompt might give potential solutions or examples to solve the problem, but do not jump to conclusions over these examples. Carefully consider the best approach.\n"
         )
         
         if is_special:
             system_message += (
-                "7. This is a special file (__init__.py or index.js). Be extra cautious:\n"
+                "8. This is a special file (__init__.py or index.js). Be extra cautious:\n"
                 "   - For __init__.py: Only modify if absolutely necessary. Prefer adding imports over adding logic.\n"
                 "   - For index.js: Ensure changes don't break the module's main functionality or exports.\n"
             )
