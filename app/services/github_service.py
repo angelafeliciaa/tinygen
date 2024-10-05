@@ -1,6 +1,4 @@
 import os
-import tempfile
-from git import Repo
 import requests
 import logging
 
@@ -46,7 +44,6 @@ def fetch_repo_content(repo_url: str) -> dict:
     
     content = {}
     
-    # Recursive fetching with file filtering
     def fetch_contents(path=''):
         response = requests.get(f"{api_url}/{path}")
         response.raise_for_status()

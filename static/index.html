@@ -28,17 +28,6 @@
             font-family: Consolas, monospace;
             overflow-x: auto;
         }
-        .added {
-            background-color: #e6ffed; /* Light green background */
-            color: #2c662d; /* Dark green text */
-        }
-        .removed {
-            background-color: #ffeef0; /* Light red background */
-            color: #a50e48; /* Dark red text */
-        }
-        .hunk {
-            color: #0366d6; /* Blue color for @@ lines */
-        }
         .error {
             color: red;
         }
@@ -80,7 +69,7 @@
                 }
 
                 if (data.diff) {
-                    resultElement.innerHTML = formatDiff(data.diff);
+                    resultElement.textContent = data.diff;
                 } else if (data.error) {
                     throw new Error(data.error);
                 } else {
@@ -91,39 +80,6 @@
                 resultElement.className = 'error';
             }
         });
-
-        /**
-         * Formats the diff by wrapping added, removed, and hunk lines with styled spans.
-         * @param {string} diff - The diff text.
-         * @returns {string} - The formatted HTML string.
-         */
-        function formatDiff(diff) {
-            const lines = diff.split('\n');
-            return lines.map(line => {
-                if (line.startsWith('+') && !line.startsWith('+++')) {
-                    return `<span class="added">${escapeHTML(line)}</span>`;
-                } else if (line.startsWith('-') && !line.startsWith('---')) {
-                    return `<span class="removed">${escapeHTML(line)}</span>`;
-                } else if (line.startsWith('@@')) {
-                    return `<span class="hunk">${escapeHTML(line)}</span>`;
-                } else {
-                    return escapeHTML(line);
-                }
-            }).join('\n');
-        }
-
-        /**
-         * Escapes HTML special characters to prevent XSS.
-         * @param {string} str - The string to escape.
-         * @returns {string} - The escaped string.
-         */
-        function escapeHTML(str) {
-            return str.replace(/&/g, "&amp;")
-                      .replace(/</g, "&lt;")
-                      .replace(/>/g, "&gt;")
-                      .replace(/"/g, "&quot;")
-                      .replace(/'/g, "&#039;");
-        }
     </script>
 </body>
 </html>

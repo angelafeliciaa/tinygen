@@ -1,11 +1,10 @@
 import difflib
-import re
 
 def generate_diff(original_content: dict, modified_content: dict) -> str:
     diff = []
     
-    for file_path in original_content.keys():
-        if file_path in modified_content:
+    for file_path in modified_content.keys():
+        if file_path in original_content:
             original_lines = original_content[file_path].splitlines()
             modified_lines = modified_content[file_path].splitlines()
             
@@ -16,11 +15,12 @@ def generate_diff(original_content: dict, modified_content: dict) -> str:
                 fromfile=f'a/{file_path}',
                 tofile=f'b/{file_path}',
                 lineterm='',
-                n=0  # Set context lines to 0 for a more concise diff
+                n=2  # Set context lines to 3 for a more readable diff
             )
             
             diff.extend(file_diff)
-    
+            diff.append('')  # Add a blank line between file diffs
+
     return '\n'.join(diff)
 
 def format_diff_indentation(diff: str) -> str:
@@ -44,7 +44,7 @@ def format_diff_indentation(diff: str) -> str:
             continue
 
         # Remove leading '+' and spaces for code lines
-        code_line = re.sub(r'^\+\s*', '', line)
+        code_line = line.lstrip('+ ')
 
         if code_line.strip().startswith(('def ', 'class ')):
             indent_level = 0
@@ -57,6 +57,6 @@ def format_diff_indentation(diff: str) -> str:
         if code_line.strip().endswith(':'):
             indent_level += 1
 
-        formatted_lines.append('+' + formatted_line)
+        formatted_lines.append('+' + formatted_line if line.startswith('+') else formatted_line)
 
     return '\n'.join(formatted_lines)
