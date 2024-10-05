@@ -1,6 +1,6 @@
 # TinyGen
 
-TinyGen is a tool for generating diffs based on natural language descriptions.
+TinyGen, a toy version of Codegen, is an AI-powered code evolution catalyst - transforming ideas into precise diffs with a simple prompt!
 
 ## Live Demo
 
