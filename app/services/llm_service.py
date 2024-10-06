@@ -87,6 +87,7 @@ def rank_and_select_files(relevant_files: dict) -> dict:
 
     return top_files
 
+# decided not to use this because it will have less context
 def extract_relevant_functions(top_files: dict, prompt: str) -> dict:
     relevant_functions = {}
     for file_path, file_info in top_files.items():
