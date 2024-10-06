@@ -35,7 +35,7 @@ async def generate_code(request: CodegenRequest):
         # Rank and select top files
         top_files = llm_service.rank_and_select_files(relevant_files)
         
-        # Generate initial changes only for relevant functions
+        # Generate initial changes only for relevant files
         initial_changes = llm_service.generate_changes(top_files, request.prompt)
         
         # Perform multiple reflections until satisfied
