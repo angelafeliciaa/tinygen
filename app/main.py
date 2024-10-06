@@ -54,14 +54,5 @@ async def generate_code(request: CodegenRequest):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-@app.get("/fetch-content")
-async def fetch_content(repo_url: str):
-    try:
-        # Fetch repo content
-        repo_content = github_service.fetch_repo_content(repo_url)
-        return JSONResponse(content={"repo_content": repo_content})
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
