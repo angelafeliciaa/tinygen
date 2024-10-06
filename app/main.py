@@ -5,7 +5,8 @@ import uvicorn
 import os
 from dotenv import load_dotenv
 from .models.codegen import CodegenRequest
-from .services import github_service, llm_service, diff_service, supabase_service
+from .services import github_service, llm_service, diff_service
+from app.services import supabase_service
 
 load_dotenv()
 
