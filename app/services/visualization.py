@@ -101,7 +101,11 @@ def get_node_color(node_type):
     return colors.get(node_type, '#FFFFFF')  # Default to white if type is unknown
 
 def visualize_import_graph(repo_content, output_file):
-    graph = build_import_graph(repo_content)
+    # Filter repo_content to only include files that should be processed
+    filtered_repo_content = {file_path: content for file_path, content in repo_content.items() if should_process_file(file_path)}
+    
+    # Build the import graph using the filtered content
+    graph = build_import_graph(filtered_repo_content)
     
     # Create Network
     net = Network(height="750px", width="100%", directed=True, notebook=False)
@@ -210,3 +214,23 @@ def visualize_import_graph(repo_content, output_file):
         file.write(modified_html)
 
     return output_file
+
+def should_process_file(file_path):
+    # List of directories and file extensions to ignore
+    ignore_dirs = ['.idea', '.git', '__pycache__', 'venv', 'env']
+    ignore_extensions = ['.pyc', '.pyo', '.pyd', '.db', '.lock', '.toml', '.md', '.txt', '.xml', '.json']
+    ignore_filenames = ['requirements.txt', 'Pipfile', 'poetry.lock', 'README.md', 'README.rst']
+
+    # Check if the file is in an ignored directory
+    if any(ignored_dir in file_path.split(os.sep) for ignored_dir in ignore_dirs):
+        return False
+
+    # Check if the file has an ignored extension
+    if any(file_path.endswith(ext) for ext in ignore_extensions):
+        return False
+
+    # Check if the file is in the list of ignored filenames
+    if os.path.basename(file_path) in ignore_filenames:
+        return False
+
+    return True
