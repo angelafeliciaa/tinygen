@@ -12,6 +12,7 @@ A live demo of TinyGen is available at [https://tinygen-31646a1cc468.herokuapp.c
    ```
    git clone https://github.com/angelafeliciaa/TinyGen.git
    cd tinygen
+   cd app
    ```
 
 2. Create and activate a virtual environment:
